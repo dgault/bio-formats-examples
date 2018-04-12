@@ -10,7 +10,8 @@ Prerequisites
 The following are required:
 
     JDK 7 or higher
-    Maven 2.x (for Maven build)
+    Maven 3.x (for Maven build)
+    Gradle (for Gradle build)
 
 Building with Maven
 -------------------
@@ -27,7 +28,7 @@ Building with Gradle
 
 From the root directory, run:
 
-    ./gradlew
+    gradle
 
 Downloaded files (including the Gradle distribution itself) will be stored in
 the Gradle user home directory (`~/.gradle` by default).
@@ -36,5 +37,5 @@ the Gradle user home directory (`~/.gradle` by default).
 Further Resources
 -----------------
 
-- [Bio-Formats homepage](https://www.openmicroscopy.org/site/products/bio-formats)
-- [Bio-Formats documentation](https://www.openmicroscopy.org/site/support/bio-formats)
+- [Bio-Formats homepage](https://www.openmicroscopy.org/bio-formats)
+- [Bio-Formats documentation](https://docs.openmicroscopy.org/latest/bio-formats/)
