@@ -28,34 +28,56 @@ public class ConvertPlanes {
         ImageReader reader = new ImageReader();
         reader.setMetadataStore(omexml);
         reader.setId(inputFile);
-        
-        // set up the writer and associate it with the output file
-        ImageWriter writer = new ImageWriter();
-        writer.setMetadataRetrieve(omexml);
-        writer.setInterleaved(reader.isInterleaved());
-        writer.setId(outputBaseFile+"_s0_0.tif");
-        
-        
+
         for (int series=0; series<reader.getSeriesCount(); series++) {
             // tell the reader and writer which series to work with
             reader.setSeries(series);
-            writer.setSeries(series);
+            
+            IMetadata omexml2 = service.createOMEXMLMetadata();
+            omexml2.setImageID("Image:0", 0);
+            omexml2.setPixelsID("Pixels:0", 0);
+
+            int channelCount = 1;
+            omexml2.setPixelsBigEndian(omexml.getPixelsBigEndian(series), 0);
+            omexml2.setPixelsDimensionOrder(omexml.getPixelsDimensionOrder(series), 0);
+            omexml2.setPixelsType(omexml.getPixelsType(series), 0);
+            omexml2.setPixelsSizeX(omexml.getPixelsSizeX(series), 0);
+            omexml2.setPixelsSizeY(omexml.getPixelsSizeY(series), 0);
+            omexml2.setPixelsSizeZ(new PositiveInteger(1), 0);
+            omexml2.setPixelsSizeC(new PositiveInteger(channelCount), 0);
+            omexml2.setPixelsSizeT(new PositiveInteger(1), 0);
+
+            for (int channel=0; channel<channelCount; channel++) {
+              omexml2.setChannelID("Channel:0:" + 0, 0, 0);
+              omexml2.setChannelSamplesPerPixel(new PositiveInteger(1), 0, channel);
+            }
+            Unit<Length> unit = UNITS.MICROMETER;
+            Length physicalSizeX = new Length(1.0, unit);
+            Length physicalSizeY = new Length(1.5, unit);
+            Length physicalSizeZ = new Length(2, unit);
+            omexml2.setPixelsPhysicalSizeX(physicalSizeX, 0);
+            omexml2.setPixelsPhysicalSizeY(physicalSizeY, 0);
+            omexml2.setPixelsPhysicalSizeZ(physicalSizeZ, 0);
             
             // construct a buffer to hold one image's pixels
             byte[] plane = new byte[FormatTools.getPlaneSize(reader)];
             
             // convert each image in the current series
             for (int image=0; image<reader.getImageCount(); image++) {
-                //change output file for each plane
-                writer.changeOutputFile(outputBaseFile+"_s"+series+"_"+image+".tif");
-                
-                reader.openBytes(image, plane);
-                writer.saveBytes(image, plane);
+              ImageWriter writer = new ImageWriter();
+              writer.setMetadataRetrieve(omexml2);
+              writer.setInterleaved(reader.isInterleaved());
+              writer.setId(outputBaseFile+"_T"+image+".tif");
+              writer.setSeries(0);
+
+              reader.openBytes(image, plane);
+              writer.saveBytes(0, plane);
+
+              writer.close();
             }
         }
         
         reader.close();
-        writer.close();
     }
     
 }
