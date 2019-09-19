@@ -1,9 +1,5 @@
-# read in and display ImagePlus object(s)
+
 from loci.plugins import BF
-file = "/Users/dgault/Documents/Sample Images/vsi/test/R6_EXP001_AQPO4_WFA_0"+str(1)+".vsi"
-
-
-# parse metadata
 from loci.formats import ImageReader
 from loci.formats import ImageWriter
 from loci.formats import MetadataTools
@@ -22,8 +18,9 @@ factory = ServiceFactory();
 service = factory.getInstance(OMEXMLService);
 
 # create initial writer metadata from first file
-file = "/Path/to/R6_EXP001_AQPO4_WFA_01.vsi"
+file = "/Users/dgault/Documents/Sample Images/vsi/test/R6_EXP001_AQPO4_WFA_01.vsi"
 reader.setId(file)
+allMetadata = reader.getGlobalMetadata()
 initialMetadata = service.asRetrieve(reader.getMetadataStore())
 writerMetadata = service.createOMEXMLMetadata(initialMetadata.dumpXML());
 reader.close()
@@ -32,7 +29,7 @@ reader.close()
 writerRoot = writerMetadata.getRoot()
 writerIndex = 2
 for fileIndex in range(1, 4):
-  file = "/Path/to/R6_EXP001_AQPO4_WFA_0"+str(fileIndex + 1)+".vsi"
+  file = "/Users/dgault/Documents/Sample Images/vsi/test/R6_EXP001_AQPO4_WFA_0"+str(fileIndex + 1)+".vsi"
   reader.setId(file)
   readerMetadata = service.asRetrieve(reader.getMetadataStore())
   root = readerMetadata.getRoot()
@@ -43,22 +40,31 @@ for fileIndex in range(1, 4):
     seriesMetadata = reader.getSeriesMetadata()
     image = root.getImage(series)
     image.setID("Image:"+str(writerIndex))
-    # TODO: copy original metadata
     writerRoot.addImage(image)
     writerIndex = writerIndex + 1
+
+    writerMetadata.setRoot(writerRoot)
+    seriesMeta = reader.getSeriesMetadata()
+
+    name = "Series " + str(writerIndex)
+    realName = reader.getMetadataStore().getImageName(series)
+    if realName is None and realName.trim().length() != 0:
+      name = realName
+    MetadataTools.merge(seriesMeta, allMetadata, name + " ")
+    
   reader.close()
 
-writerMetadata.setRoot(writerRoot)
+service.populateOriginalMetadata(writerMetadata, allMetadata)
 writer.setMetadataRetrieve(writerMetadata)
 
 # initialize the writer
-writer.setId("/Path/to/combinedVSI.ome.tiff")
+writer.setId("/Users/dgault/Documents/Sample Images/vsi/test/combinedVSI.ome.tiff")
 
 
 # write the pixels
 writerIndex = 0
 for fileIndex in range(4):
-  file = "/Path/to/R6_EXP001_AQPO4_WFA_0"+str(fileIndex + 1)+".vsi"
+  file = "/Users/dgault/Documents/Sample Images/vsi/test/R6_EXP001_AQPO4_WFA_0"+str(fileIndex + 1)+".vsi"
   reader.setId(file)
   seriesCount = reader.getSeriesCount()
   for series in range(reader.getSeriesCount()):
@@ -66,7 +72,6 @@ for fileIndex in range(4):
 
     writer.setSeries(writerIndex)
     writerIndex = writerIndex + 1
-    seriesMetadata = reader.getSeriesMetadata()
     for image in range(reader.getImageCount()):
       writer.saveBytes(image, reader.openBytes(image))
   reader.close()
