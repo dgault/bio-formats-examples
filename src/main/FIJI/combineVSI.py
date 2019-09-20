@@ -5,6 +5,8 @@ from loci.formats import ImageWriter
 from loci.formats import MetadataTools
 from loci.formats.services import OMEXMLService
 from loci.common.services import ServiceFactory
+from loci.plugins.in import ImporterOptions
+
 reader = ImageReader()
 omeMeta = MetadataTools.createOMEXMLMetadata()
 reader.setMetadataStore(omeMeta)
@@ -58,7 +60,8 @@ service.populateOriginalMetadata(writerMetadata, allMetadata)
 writer.setMetadataRetrieve(writerMetadata)
 
 # initialize the writer
-writer.setId("/Users/dgault/Documents/Sample Images/vsi/test/combinedVSI.ome.tiff")
+combinedFile = "/Users/dgault/Documents/Sample Images/vsi/test/R6_EXP001_AQPO4_WFA_combined.ome.tiff"
+writer.setId(combinedFile)
 
 
 # write the pixels
@@ -77,3 +80,13 @@ for fileIndex in range(4):
   reader.close()
 
 writer.close()
+
+# read in the combined file and split the channels
+options = ImporterOptions()
+options.setSplitChannels(True)
+options.setOpenAllSeries(True)
+options.setShowOMEXML(True)
+options.setId(combinedFile)
+imps = BF.openImagePlus(options)
+for imp in imps:
+    imp.show()
